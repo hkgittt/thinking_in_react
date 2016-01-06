@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<script src="./bower_components/react/react.js"></script>
+	<script src="./bower_components/react/react-dom.js"></script>
+	<link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap.css">
+
+</head>
+<body>
+	<div id="container"></div>
+	<script>
+	var products = [
+	  {category: "Sporting Goods", price: "$49.99", stocked: true, name: "Football"},
+	  {category: "Sporting Goods", price: "$9.99", stocked: true, name: "Baseball"},
+	  {category: "Sporting Goods", price: "$29.99", stocked: false, name: "Basketball"},
+	  {category: "Electronics", price: "$99.99", stocked: true, name: "iPod Touch"},
+	  {category: "Electronics", price: "$399.99", stocked: false, name: "iPhone 5"},
+	  {category: "Electronics", price: "$199.99", stocked: true, name: "Nexus 7"}
+	];
+
+	// Bottom Up
+	var ProductRow = React.createClass({
+		// handler: function(e) {
+		// 	console.log(this.props.product.name);
+		// },
+		render: function() {
+			return (
+				React.createElement('tr', {className: "productRow"},
+					React.createElement('td', /* {onClick: this.handler}, */null,  this.props.product.name),
+					React.createElement('td', null, this.props.product.price)
+				)
+			);
+		}
+	});
+
+	var ProductCategoryRow = React.createClass({
+		render: function() {
+			return (
+				React.createElement('tr', {className: "productCategoryRow"},
+					React.createElement('td', null, this.props.category)
+				)
+			);
+		}
+	});	
+
+	var ProductTable = React.createClass({
+		render: function() {
+			var rows = [];
+			var lastCategory = null;
+			this.props.products.forEach(function(product) {
+				if (product.name.toUpperCase().indexOf(this.props.filterText.toUpperCase()) === -1 || (!product.stocked && this.props.inStockOnly)) return;
+				if (product.category !== lastCategory) {
+					rows.push(React.createElement(ProductCategoryRow, {category: product.category, key: product.category}));
+				}
+				rows.push(React.createElement(ProductRow, {product: product, key:product.name}));
+				lastCategory = product.category;
+			}.bind(this));
+
+			// console.log(rows);
+			return (
+				React.createElement('ul', {className: "productTable"},
+
+					React.createElement('table', null, 
+						React.createElement('thead', null,
+							React.createElement('tr', null,
+								React.createElement('th', null, "Name"),
+								React.createElement('th', null, "Price")
+							)
+						),
+						React.createElement('tbody', null,
+						rows)
+ 				 	)
+				)
+			);
+
+		}
+	});
+
+	var SearchBar = React.createClass({
+		handleChange: function() {
+			// console.log(this.refs.filterTextInput.value);
+			// console.log(this.refs.inStockOnlyInput.checked);
+			this.props.onUserInput(this.refs.filterTextInput.value, this.refs.inStockOnlyInput.checked);
+		},
+		render: function() {
+			return (
+				React.createElement('form', {className: "searchBar"}, 
+					React.createElement('input', {type: "text", placeholder: "Search...", onChange:this.handleChange, value: this.props.filterText, ref: "filterTextInput"}, null),
+					React.createElement('input', {type: "checkbox", checked: this.props.inStockOnly, onChange:this.handleChange, ref: "inStockOnlyInput"}),
+					"Only show products in stock"
+
+				)
+			);
+		}
+	});
+
+	var FilterableProductTable = React.createClass({
+		getInitialState: function() {
+			return {filterText: '', inStockOnly:false};
+		},
+		handleUserInput: function(filterText, inStockOnly) {
+			this.setState({filterText: filterText, inStockOnly: inStockOnly});
+		},
+		render: function() {
+			return (
+				React.createElement('div', {className: "filterableProductTable"}, 
+					React.createElement(SearchBar, {filterText: this.state.filterText, onUserInput: this.handleUserInput, inStockOnly: this.state.inStockOnly}),
+					React.createElement(ProductTable, {products: this.props.products, filterText: this.state.filterText, inStockOnly: this.state.inStockOnly})
+				)
+			);
+		}
+	});
+
+
+
+	ReactDOM.render(
+		React.createElement(FilterableProductTable, {products: products}),
+		document.getElementById('container')
+	);
+
+	</script>
+</body>
+</html>
